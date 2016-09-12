@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>変数宣言、即時関数について</title>
+</head>
+
+<body>
+	<header class="wrp-header">
+		<h1>変数宣言、即時関数</h1>
+	</header>
+
+	<div class="wrp-contents">
+		<section>
+			<h2>変数宣言</h2>
+			<h3>ポイント</h3>
+			<ul>
+				<li>ES5以前は、varしかなかった。</li>
+				<li>ES6で、「let」「const」が追加された。</li>
+				<li>いまのところ、'use strict'を使わないと動かない。</li>
+				<li>ブロックスコープを生成するため、変数の干渉を気にせずに使用できる(かも)。</li>
+			</ul>
+
+			<h3>宣言について</h3>
+			<dl>
+				<dt>「let」宣言</dt>
+				<dd>
+					<p>「再宣言ができない」宣言のもの。</p>
+					<pre>
+					<code>
+'use strict'
+
+var spam = 12;// 当然よろしい
+var spam = 13;// （再宣言）これもオッケー
+console.log(spam);//13
+
+let ham = 15;//大丈夫
+ham = 17;//（データ入れ替え）問題なし
+console.log(ham);
+
+let ham = 12;//（再宣言）こいつはダメ
+					</code>
+					</pre>
+				</dd>
+				<dt>「const」宣言</dt>
+				<dd>
+					<p>「定数」を宣言するもの。</p>
+					<p>これまでのvarだと常に値が書き換わるリスクをはらんでいた。（個人的な推測ですが、いろいろなプラグインの導入や様々な機能の追加で、コアの機能が壊れる可能性をそういうリスクって言ってるのかなと）</p>
+					<p>「大文字で変数を定義し、定数として使用している変数である」とする暗黙のルールで運用されることもあったそう。</p>
+					<pre>
+					<code>
+'use strict'
+
+const TEST = 11;//大丈夫
+TEST = 12; //（宣言時の値を変えれない）代入ができない　エラーが返ってくる
+					</code>
+					</pre>
+					<p>constの注意点は、オブジェクトの書き換えができること。</p>
+					<pre>
+					<code>
+const TEST = {
+       a: 1,
+       b: 0
+   };
+TEST.a = 3;
+
+console.log(TEST);//Object {a: 3, b: 0}
+					</code>
+					</pre>
+					<p>もしconstをオブジェクト形式で設定する場合は、下記のように設定することがおすすめ</p>
+					<pre>
+					<code>
+const TEST = Object.freeze({
+       a: 1,
+       b: 0
+   });
+
+TEST.a = 3;
+
+console.log(TEST);//Cannot assign to read only property 'a' of object '#&lt;Object&gt;'
+   					</code>
+					</pre>
+					<p>オブジェクトを凍結でき、書き換えられる心配がなくなります。</p>
+				</dd>
+			</dl>
+
+			<h3>共通の特徴</h3>
+			<ol>
+				<li>
+					<p>let・constでは、ブロック単位でスコープを生成。</p>
+					<p>スコープ:変数の有効範囲のことで、プログラムのどの場所から参照できるかを決める概念。</p>
+					<pre>
+   					<code>
+for (var i = 0; i &lt; 10; i++) {
+    console.log(i); // 1~9まででる
+}
+ 
+console.log(i); //10がでる
+
+					//	var = i;がない場合でも巻き上げ(ホイスト)により同様
+for (i = 0; i &lt; 10; i++) {
+    console.log(i); // 1~9まででる
+}
+ 
+console.log(i); //10がでる
+   					</code>
+					</pre>
+
+					<p>letで変数を宣言すると、有効範囲がfor分内に限られるので、iは他からアクセスできなくなる</p>
+					<pre>
+   					<code>
+for (let i = 0; i &lt; 10; i++) {
+　　　　console.log(i); // 1~9まででる
+}
+ 
+console.log(i); //ReferenceError: i is not defined
+   					</code>
+					</pre>
+
+					<p>ホイストとブロックスコープでの問題</p>
+					<p>例：.buttonという要素があり、それを各クリックしたときに順番の数値を出すという実装</p>
+					<pre>
+   					<code>
+var $btns = $(".button"); //10個あったとする
+ 
+for (var i=0,len=$btns.length; i&lt;len; ++i) {
+ 
+  $btns.eq(i).on('click',function(){
+     console.log(i);
+　　　// どれ押しても10しか出てこない
+  });
+}
+   					</code>
+					</pre>
+					<p>letでやると、</p>
+					<pre>
+   					<code>
+let $btns = $(".button"); //10個あったとする
+ 
+for (let i=0,len=$btns.length; i&lt;len; ++i) {
+ 
+  $btns.eq(i).on('click',function(){
+     console.log(i);
+     // それぞれ 0.1.2 と出てくる
+  });
+}
+   					</code>
+					</pre>
+
+			<p>捕捉</p>
+			<ul class="capt">
+				<li>let・constではホイストが起きない。<br>
+					ホイスト：変数の巻き上げ現象(宣言しないでいきなり使うと、書いていない宣言を補完して、エラーとせずに"undefined"を返すこと。)</li>
+				<li>letやconstからは、varのような巻き上げ現象がなくなり、宣言されないと認識しない仕様になった。</li>
+				<li>ES5以前は変数宣言はブロックスコープの先頭に巻き上げられるため、宣言する前でその変数を利用した場合、エラーにならずundefinedとなっていたが、constとletを使うことでReferenceErrorが発生するようになった。</li>
+				<li>
+					<p>constの意図はわかるけど、letの使い道が分からん。</p>
+					<p><a href="http://d.hatena.ne.jp/pospome/20150705/1436110800" target="_blank">JSのES6での変数宣言がほとんどconstになって、letを使う機会がない。</a></p>
+					<p>ブロックスコープのメリットがあるため、ローカル変数はletにしたほうがよりシンプルにスクリプトが書ける（かも）。</p>
+				</li>
+				<li>
+					<p>let・constでは、ブロック単位でスコープを生成します。</p>
+				</li>
+				<li>
+					<p>テンプレート文字列というものもある。<br>
+テンプレート文字列とは、「`」バッククォートでくくった文字列になります。</p>
+					<pre>
+   					<code>
+
+// テンプレート文字列は「`」バッククォート
+var str = `あ
+い
+う`;
+
+console.log(str);
+/**
+ * あ
+ * い
+ * う
+ */
+   					</code>
+					</pre>
+				</li>
+			</ul>
+
+
+		</section>
+		<section>
+			<h2>即時関数</h2>
+			<h3>ポイント</h3>
+			<ul>
+				<li>即時関数は、関数を定義すると同時に実行するための構文。</li>
+				<li>その名の通り「即時実行される無名関数」のこと。即時実行できる無名の関数とはつまり、「グローバルの名前を全く潰さず、ローカルのスコープを作り出しそのまま処理を実行することができる」ということ。</li>
+				<li>即時関数を使う理由は、スコープの汚染を防ぐため。<br>
+					JavaScriptのスコープは、「グローバルスコープ」と「関数スコープ」のみ。すなわち関数は任意にスコープを作るための唯一の手段。</li>
+				<li>処理が再利用されないのであれば、即時関数を使うべき。</li>
+				<li>名前付き関数との主な用途の違いは、再利用するかどうか。</li>
+				<li>スコープを作るためだけなら、｛｝でのブロックスコープで代用できる。</li>
+			</ul>
+
+			<h3>特徴</h3>
+			<dl>
+				<dt>基本的な書き方</dt>
+				<dd>
+					<pre>
+   					<code>
+(function () {
+    //処理
+}());
+   					</code>
+					</pre>
+				</dd>
+				<dt>引数をもたせられる</dt>
+				<dd>
+					<pre>
+   					<code>
+(function (param1, param2) {
+    //処理
+	console.log(param1); //'hoge'が出力される。
+	console.log(param2); //'fuga'が出力される。
+}('hoge', 'fuga'));
+   					</code>
+					</pre>
+				</dd>
+				<dt>返り値を持つことができる</dt>
+				<dd>
+					<pre>
+   					<code>
+var result = (function (param1, param2) {
+    return param1 + param2;
+}(1, 2));
+
+console.log(result); //3が出力される。
+   					</code>
+					</pre>
+				</dd>
+			</dl>
+
+			<h3>使いどころ</h3>
+			<dl>
+				<dt>ページの初期化</dt>
+				<dd>
+					<p>load時にのみ処理するものは以降必要でない、残っていてはリスクなだけ。</p>
+				</dd>
+				<dt>プライベートプロパティ／メソッドの定義</dt>
+				<dd>
+					<p>オブジェクト内に定義されたプロパティ/メソッドはすべてパブリックなものとして扱われる。しかし、即時関数やクロージャを利用すればプライベートなプロパティ／メソッドを定義することが可能。</p>
+					<pre>
+   					<code>
+var counter = (function () {
+        //プライベートにしたいプロパティ
+        var count = 0;
+
+        return {
+            //加算メソッド
+            increment: function () {
+                count += 1;
+                console.log(count);
+            }
+        };
+    }());
+
+counter.increment(); //1が出力される
+counter.increment(); //2が出力される
+
+console.log(counter.count); //※undefined
+   					</code>
+					</pre>
+				</dd>
+				<dt>スコープを作るだけなら・・・{}で代用できる。</dt>
+				<dd>
+					<p>before</p>
+					<pre>
+   					<code>
+(function() {
+  var num = 1;
+}())
+
+console.log(num); // エラー
+   					</code>
+					</pre>
+					<p>after</p>
+					<pre>
+   					<code>
+{
+  let num = 1;
+}
+
+console.log(num); // エラー
+   					</code>
+					</pre>
+					<p><a href="http://iwb.jp/es2015-es6-immediate-function-let/" target="_blank">同じような例</a></p>http://wp-p.info/tpl_rep.php?cat=js-intermediate&fl=r11
+				</dd>
+			</dl>
+
+		</section>
+
+		<section>
+			<h2>参考文献</h2>
+			<ul>
+				<li><a href="http://liginc.co.jp/267624"　target="_blank">http://liginc.co.jp/267624</a></li>
+				<li><a href="https://html5experts.jp/1000ch/16984/"　target="_blank">https://html5experts.jp/1000ch/16984/</a></li>
+				<li><a href="http://qiita.com/niisan-tokyo/items/bacb5ed98ea10831eeba"　target="_blank">http://qiita.com/niisan-tokyo/items/bacb5ed98ea10831eeba</a></li>
+				<li><a href="http://qiita.com/takeharu/items/cbbe017bbdd120015ca0"　target="_blank">http://qiita.com/takeharu/items/cbbe017bbdd120015ca0</a></li>
+				<li><a href="http://qiita.com/katsukii/items/cfe9fd968ba0db603b1e"　target="_blank">http://qiita.com/katsukii/items/cfe9fd968ba0db603b1e</a></li>
+				<li><a href="http://iwb.jp/es2015-es6-immediate-function-let/"　target="_blank">http://iwb.jp/es2015-es6-immediate-function-let/</a></li>
+				<li><a href="http://wp-p.info/tpl_rep.php?cat=js-intermediate&fl=r11"　target="_blank">http://wp-p.info/tpl_rep.php?cat=js-intermediate&fl=r11</a></li>
+				<li><a href="http://wp-p.info/tpl_rep.php?cat=js-intermediate&fl=r10"　target="_blank">http://wp-p.info/tpl_rep.php?cat=js-intermediate&fl=r10</a></li>
+				<li><a href=""　target="_blank"></a></li>
+				<li><a href=""　target="_blank"></a></li>
+				<li><a href=""　target="_blank"></a></li>
+				<li><a href=""　target="_blank"></a></li>
+			</ul>
+		</section>
+
+	</div>
+
+	<footer class="wrp-footer">
+	</footer>
+
+<!-- common function -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="./js/function.js"></script>
+<!-- /common function -->
+</body>
+</html>
