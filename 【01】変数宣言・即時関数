@@ -59,8 +59,9 @@
 	       a: 1,
 	       b: 0
 	   });
+
 	TEST.a = 3;
-	console.log(TEST);//Cannot assign to read only property 'a' of object '#&lt;Object&gt;'
+	console.log(TEST);//Cannot assign to read only property 'a' of object '#<Object>'
 	</code>
 	******************************************
 	オブジェクトを凍結でき、書き換えられる心配がなくなる。
@@ -71,13 +72,13 @@
 ※スコープ:変数の有効範囲のことで、プログラムのどの場所から参照できるかを決める概念。
 	******************************************
 	<code>
-	for (var i = 0; i &lt; 10; i++) {
+	for (var i=0; i<10; i++) {
 		console.log(i); // 1~9まででる
 	}
 	console.log(i); //10がでる
 
 	//	var = i;がない場合でも巻き上げ(ホイスト)により同様
-	for (i = 0; i &lt; 10; i++) {
+	for (i=0; i<10; i++) {
 		console.log(i); // 1~9まででる
 	}
 	console.log(i); //10がでる
@@ -87,8 +88,8 @@
 （2）letで変数を宣言すると、有効範囲がfor分内に限られるので、iは他からアクセスできなくなる。
 	******************************************
 	<code>
-	for (let i = 0; i &lt; 10; i++) {
-	　　　　console.log(i); // 1~9まででる
+	for (let i=0; i<10; i++) {
+		console.log(i); // 1~9まででる
 	}
 	console.log(i); //ReferenceError: i is not defined
 	</code>
@@ -100,8 +101,7 @@
 	<code>
 	var $btns = $(".button"); //10個あったとする
 	 
-	for (var i=0,len=$btns.length; i&lt;len; ++i) {
-	 
+	for (var i=0,len=$btns.length; i<len; ++i) {
 	  $btns.eq(i).on('click',function(){
 	     console.log(i);
 	　　　// どれ押しても10しか出てこない
@@ -114,8 +114,7 @@
    	<code>
 	let $btns = $(".button"); //10個あったとする
 	 
-	for (let i=0,len=$btns.length; i&lt;len; ++i) {
-	 
+	for (let i=0,len=$btns.length; i<len; ++i) {
 	  $btns.eq(i).on('click',function(){
 	     console.log(i);
 	     // それぞれ 0.1.2 と出てくる
@@ -167,6 +166,7 @@
 	var result = (function (param1, param2) {
 	    return param1 + param2;
 	}(1, 2));
+
 	console.log(result); //3が出力される。
 	</code>
 	******************************************
@@ -192,6 +192,7 @@
 	            }
 	        };
 	    }());
+
 	counter.increment(); //1が出力される
 	counter.increment(); //2が出力される
 
